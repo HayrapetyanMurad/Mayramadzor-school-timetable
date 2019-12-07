@@ -13,7 +13,6 @@ int main(int argc, char** argv)
 		return EXIT_FAILURE;
 	}
 
-
 	std::string subjects_file = parser.get_subjects_file();
 	std::string teachers_file = parser.get_teachers_file();
 	int number_of_lessons_for_day = parser.get_number_of_lessons_for_day();
@@ -22,7 +21,7 @@ int main(int argc, char** argv)
 	Schedule schedule(subjects_file, teachers_file, number_of_lessons_for_day, number_of_school_days_in_week);
 
 	Schedule::class_to_lessons_for_week_map_t result_timetable;
-    GeneticAlgorithm(schedule, 30, 1000).generate(result_timetable);
+	GeneticAlgorithm(schedule, 30, 1000).generate(result_timetable);
 
 	Schedule::class_to_lessons_for_week_map_t::iterator it, it_end;
 	it = result_timetable.begin();
