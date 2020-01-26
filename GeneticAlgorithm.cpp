@@ -1,4 +1,5 @@
 #include <iostream>
+#include <ctime>
 #include "GeneticAlgorithm.h"
 
 GeneticAlgorithm::GeneticAlgorithm(const Schedule &schedule, int nodes_count, int generation_count)
@@ -7,7 +8,9 @@ GeneticAlgorithm::GeneticAlgorithm(const Schedule &schedule, int nodes_count, in
 	, chromosome_lenght_(schedule.get_number_of_lessons_for_day() * schedule.get_number_of_days_in_week() * schedule.get_number_of_classes())
 	, nodes_count_(nodes_count)
 	, generation_count_(generation_count)
-{}
+{
+	srand(time(0));
+}
 
 void GeneticAlgorithm::generate(Schedule::class_to_lessons_for_week_map_t& result)
 {
@@ -47,12 +50,9 @@ void GeneticAlgorithm::generate(Schedule::class_to_lessons_for_week_map_t& resul
 
 			do_chrossing(old_generation[first_index], old_generation[second_index], new_generation[j]);
 		}
-
 	}
 
 	int fit_node_index = get_fit_node(new_generation);
-
-	//std::cout << schedule_.get_fitness(new_generation[fit_node_index]) << std::endl;
 
 	schedule_.get_schedule(new_generation[fit_node_index], result);
 }
@@ -92,7 +92,7 @@ void GeneticAlgorithm::do_chrossing(const std::vector<int> &first_chromosome, co
 		new_chromosome[i] = second_chromosome[i];
 	}
 
-	int mutation_probability = rand() % 10;
+	int mutation_probability = rand() % 5;
 	if (mutation_probability == 0)
 	{
 		if (rand() % 2 == 0)

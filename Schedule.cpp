@@ -1,11 +1,24 @@
 #include <fstream>
 #include <set>
+#include <iostream>
 #include "Schedule.h"
 
 Schedule::Schedule(const std::string &subjects_file, const std::string &teachers_file, int number_of_lessons_for_day, int number_of_days_in_week)
 	: number_of_days_in_week_(number_of_days_in_week)
 	, number_of_lessons_for_day_(number_of_lessons_for_day)
 {
+	if (number_of_days_in_week_ <= 0)
+	{
+		std::string error = "Invalid number of days in week was specified";
+		throw std::exception(error.c_str());
+	}
+
+	if (number_of_lessons_for_day_ <= 0)
+	{
+		std::string error = "Invalid number of lessons for day was specified";
+		throw std::exception(error.c_str());
+	}
+
 	init(subjects_file, teachers_file);
 }
 
@@ -47,7 +60,6 @@ int Schedule::get_fitness(const std::vector<int> &chromosome) const
 		class_it = classes_.begin();
 		for (int j = 0; class_it != class_it_end; ++class_it, ++j)
 		{
-
 			int index = chromosome[j * lessons_count_for_week + i];
 			Lesson const *lesson = class_it->second[index];
 			if (lesson != NULL)
@@ -57,8 +69,40 @@ int Schedule::get_fitness(const std::vector<int> &chromosome) const
 					fitness += 10;
 				}
 			}
+		}
+	}
 
+	//check that class's free hours are at the end of the day
+	std::vector<std::set<int>> free_lessons(number_of_days_in_week_);
 
+	class_it = classes_.begin();
+	for (int i = 0; class_it != class_it_end; ++class_it, ++i)
+	{
+		for (int j = 0; j < number_of_days_in_week_; j++)
+		{
+			free_lessons[j].clear();
+		}
+
+		for (int j = 0; j < lessons_count_for_week; j++)
+		{
+			int index = chromosome[i * lessons_count_for_week + j];
+			if (class_it->second[index] == NULL)
+			{
+				int day = j / number_of_lessons_for_day_;
+				int lesson = j % number_of_lessons_for_day_;
+				free_lessons[day].insert(lesson);
+			}
+		}
+
+		for (int j = 0; j < number_of_days_in_week_; j++)
+		{
+			int size = free_lessons[j].size();
+			for (int k = number_of_lessons_for_day_ - 1; k >= number_of_lessons_for_day_ - size; k--)
+			{
+				free_lessons[j].erase(k);
+			}
+			
+			fitness += (free_lessons[j].size() * 10);
 		}
 	}
 
@@ -213,7 +257,7 @@ void Schedule::init_teachers(const std::string &teachers_file, teacher_to_lesson
 		{
 			if (!process_teacher_line(line, teacher_to_lessons_map))
 			{
-				std::string error = "Invalid format in " + teachers_file + " file";
+				std::string error = "Invalid format in " + teachers_file + " file in line:  " + line;
 				throw std::exception(error.c_str());
 			}
 
@@ -240,7 +284,7 @@ void Schedule::init_classes(const std::string &subjects_file, class_to_lessons_m
 		{
 			if (!process_class_line(line, class_to_lessons_map))
 			{
-				std::string error = "Invalid format in " + subjects_file + " file";
+				std::string error = "Invalid format in " + subjects_file + " file in line:  " + line;
 				throw std::exception(error.c_str());
 			}
 
@@ -353,7 +397,21 @@ bool Schedule::process_class_line(const std::string& line, class_to_lessons_map_
 		{
 			lesson_name = token.substr(0, pos);
 			trim(lesson_name);
-			lesson_count = std::stoi(token.substr(pos + 1));
+			try
+			{
+				lesson_count = std::stoi(token.substr(pos + 1));
+			}
+			catch (...)
+			{
+				std::string error = "invalid value for lesson count for " + lesson_name + " lesson for class " + class_name;
+				throw std::exception(error.c_str());
+			}
+
+			if (lesson_count <= 0)
+			{
+				std::string error = "invalid value for lesson count for " + lesson_name + " lesson for class " + class_name;
+				throw std::exception(error.c_str());
+			}
 
 			class_to_lessons_map[class_name][lesson_name] = lesson_count;
 		}
@@ -369,7 +427,21 @@ bool Schedule::process_class_line(const std::string& line, class_to_lessons_map_
 	{
 		lesson_name = token.substr(0, pos);
 		trim(lesson_name);
-		lesson_count = std::stoi(token.substr(pos + 1));
+		try
+		{
+			lesson_count = std::stoi(token.substr(pos + 1));
+		}
+		catch (...)
+		{
+			std::string error = "Invalid value for lesson count for " + lesson_name + " lesson for class " + class_name;
+			throw std::exception(error.c_str());
+		}
+
+		if (lesson_count <= 0)
+		{
+			std::string error = "Invalid value for lesson count for " + lesson_name + " lesson for class " + class_name;
+			throw std::exception(error.c_str());
+		}
 
 		class_to_lessons_map[class_name][lesson_name] = lesson_count;
 	}

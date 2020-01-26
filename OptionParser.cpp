@@ -30,7 +30,7 @@ bool OptionParser::init(int argc, char** argv)
 			teachers_file_ = argv[i + 1];
 			i++;
 		}
-		else if (strcmp(argv[i],"-number_of_lessons_for_day"))
+		else if (strcmp(argv[i],"-number_of_lessons_for_day") == 0)
 		{
 			if (i + 1 == argc)
 			{
@@ -40,7 +40,7 @@ bool OptionParser::init(int argc, char** argv)
 			number_of_lessons_for_day_ = std::atoi(argv[i + 1]);
 			i++;
 		}
-		else if (strcmp(argv[i],"-number_of_school_days_in_week"))
+		else if (strcmp(argv[i],"-number_of_school_days_in_week") == 0)
 		{
 			if (i + 1 == argc)
 			{
